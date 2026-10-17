@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SB Political Consulting - Pan-India Political Campaign Engine</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              teal: '#1b5b65',
+              dark: '#11353c',
+              header: '#1e4e56',
+              accent: '#319795',
+              gold: '#d69e2e',
+              slate: '#2d3748',
+              lightBg: '#f8fafc'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex flex-col selection:bg-teal-500 selection:text-white">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-slate-700 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <span id="toastMsg" class="text-xs font-medium">Notification</span>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="fixed inset-0 bg-slate-950/95 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
+      <div class="bg-gradient-to-r from-brand-dark via-brand-teal to-brand-header p-7 text-center text-white relative">
+        <div class="w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-3 border border-white/20 shadow-inner">
+          <i class="fa-solid fa-landmark text-3xl text-yellow-400"></i>
+        </div>
+        <h2 class="text-2xl font-black tracking-tight">SB Political Consulting</h2>
+        <p class="text-xs text-teal-100 mt-1 font-medium">Managing Director: <strong>Sk Babul</strong></p>
+        <div class="mt-3 inline-block bg-yellow-400 text-slate-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow">
+          Pan-India Campaign Engine
+        </div>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="p-6 space-y-4">
+        <div id="loginError" class="hidden p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs rounded font-medium">
+          <i class="fa-solid fa-triangle-exclamation mr-1"></i> Invalid Username or Password!
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Username / ID</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+              <i class="fa-solid fa-user text-sm"></i>
+            </span>
+            <input type="text" id="loginUsername" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal text-sm font-medium" placeholder="Enter username">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+              <i class="fa-solid fa-key text-sm"></i>
+            </span>
+            <input type="password" id="loginPassword" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal text-sm font-medium" placeholder="Enter password">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-brand-teal hover:bg-brand-dark text-white font-extrabold py-3 rounded-lg shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2">
+          <span>Enter Command Center</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION WRAPPER -->
+  <div id="appContainer" class="hidden min-h-screen flex-col flex-1">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-brand-header text-white shadow-md sticky top-0 z-30 border-b border-teal-800/60">
+      <div class="flex items-center justify-between px-4 py-2.5 flex-wrap gap-2">
+        <div class="flex items-center space-x-3">
+          <button onclick="toggleSidebar()" class="text-white/80 hover:text-white p-1.5 rounded-lg text-lg">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-lg bg-yellow-400 text-brand-dark font-black flex items-center justify-center text-sm shadow">
+              SB
+            </div>
+            <div>
+              <span class="text-base font-black tracking-tight block leading-none">SB Political Consulting</span>
+              <span class="text-[10px] text-teal-200 font-semibold tracking-wider uppercase">Election Command Platform</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center flex-wrap gap-2 text-xs">
+          <div class="bg-black/20 border border-white/20 rounded-lg px-2.5 py-1 flex items-center space-x-2">
+            <span class="text-yellow-400 font-bold uppercase text-[10px]"><i class="fa-solid fa-flag"></i> Client:</span>
+            <select id="partyFilter" onchange="changePartyProject(this.value)" class="bg-transparent text-white font-bold outline-none cursor-pointer">
+              <option value="BJP Project">BJP Project</option>
+              <option value="INC Project">INC Project</option>
+              <option value="AITC Project">AITC Project</option>
+            </select>
+          </div>
+
+          <div class="bg-black/20 border border-white/20 rounded-lg px-2.5 py-1 flex items-center space-x-2">
+            <i class="fa-solid fa-map-location-dot text-teal-300"></i>
+            <select id="stateFilter" onchange="changeState(this.value)" class="bg-transparent text-white font-bold outline-none cursor-pointer">
+              <!-- States -->
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+            <div class="w-6 h-6 rounded-full bg-yellow-400 text-brand-dark font-black flex items-center justify-center text-[10px]" id="userAvatar">
+              SB
+            </div>
+            <div class="text-left leading-none">
+              <span class="font-bold text-xs text-white block" id="navUserName">Sk Babul</span>
+              <span class="text-[9px] text-teal-200 block uppercase font-bold" id="navUserRole">Admin</span>
+            </div>
+          </div>
+          <button onclick="handleLogout()" title="Logout" class="text-red-300 hover:text-red-100 p-1.5 text-base">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- SIDEBAR MENU -->
+      <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col transition-all duration-300 z-20">
+        <div class="p-3 bg-gradient-to-r from-slate-900 to-brand-dark text-white border-b border-gray-800 flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-teal border-2 border-yellow-400 flex items-center justify-center font-black text-yellow-400 text-base shadow">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div class="overflow-hidden">
+            <h4 class="font-bold text-xs text-white truncate" id="sideUserName">Sk Babul</h4>
+            <p class="text-[10px] text-teal-200 truncate" id="sideUserTitle">Managing Director</p>
+            <span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.2 rounded border border-emerald-500/30 uppercase mt-1 inline-block" id="sideRoleBadge">Master Admin</span>
+          </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-1 text-xs">
+          <button onclick="showSection('dashboardSection')" id="nav-dashboardSection" class="sidebar-btn w-full px-3 py-2.5 rounded-lg font-bold flex items-center space-x-2.5 text-brand-teal bg-teal-50 border-l-4 border-brand-teal">
+            <i class="fa-solid fa-chart-line text-sm"></i>
+            <span>Live Command Center</span>
+          </button>
+
+          <button onclick="showSection('surveyCollectorSection')" id="nav-surveyCollectorSection" class="sidebar-btn w-full px-3 py-2.5 rounded-lg font-bold text-gray-700 hover:bg-gray-100 flex items-center space-x-2.5">
+            <i class="fa-solid fa-mobile-screen-button text-sm text-emerald-600"></i>
+            <span>Field Agent Survey Form</span>
+          </button>
+
+          <button id="navUserMgmt" onclick="showSection('userMgmtSection')" class="sidebar-btn w-full px-3 py-2.5 rounded-lg font-bold text-gray-700 hover:bg-gray-100 flex items-center space-x-2.5">
+            <i class="fa-solid fa-users-gear text-sm text-amber-500"></i>
+            <span>Partners & Agents Setup</span>
+          </button>
+
+          <button id="navSurveyBuilder" onclick="showSection('surveyBuilderSection')" class="sidebar-btn w-full px-3 py-2.5 rounded-lg font-bold text-gray-700 hover:bg-gray-100 flex items-center space-x-2.5">
+            <i class="fa-solid fa-list-check text-sm text-blue-500"></i>
+            <span>Ground Question Builder</span>
+          </button>
+
+          <button onclick="showSection('projectsSection')" id="nav-projectsSection" class="sidebar-btn w-full px-3 py-2.5 rounded-lg font-bold text-gray-700 hover:bg-gray-100 flex items-center space-x-2.5">
+            <i class="fa-solid fa-briefcase text-sm text-purple-500"></i>
+            <span>All India Party Projects</span>
+          </button>
+
+          <button onclick="showSection('surveyDataSection')" id="nav-surveyDataSection" class="sidebar-btn w-full px-3 py-2.5 rounded-lg font-bold text-gray-700 hover:bg-gray-100 flex items-center space-x-2.5">
+            <i class="fa-solid fa-database text-sm text-indigo-500"></i>
+            <span>Submitted Survey Log</span>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- CONTENT PANELS -->
+      <main class="flex-1 bg-slate-100 overflow-y-auto p-4 space-y-4">
+
+        <!-- 1. LIVE DASHBOARD SECTION -->
+        <section id="dashboardSection" class="content-section space-y-4">
+          <div class="bg-gradient-to-r from-slate-900 via-brand-dark to-brand-teal text-white p-4 rounded-xl shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div>
+              <div class="flex items-center space-x-2 mb-1">
+                <span id="activePartyBadge" class="bg-yellow-400 text-slate-900 font-extrabold text-[10px] px-2 py-0.5 rounded uppercase">BJP Project</span>
+                <span id="activeStateBadge" class="bg-emerald-500/30 text-emerald-300 font-bold text-[10px] px-2 py-0.5 rounded border border-emerald-500/30">West Bengal</span>
+              </div>
+              <h1 class="text-xl font-black tracking-tight text-white">Constituency Election Analytics & Intelligence</h1>
+              <p class="text-xs text-teal-200 mt-0.5">Master Operator: <strong>Sk Babul</strong> | Real-Time Field Submissions Active</p>
+            </div>
+            
+            <button onclick="exportSurveysToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-2 rounded-lg shadow flex items-center gap-1.5">
+              <i class="fa-solid fa-file-excel"></i> Export CSV
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="bg-emerald-600 text-white p-4 rounded-xl shadow-sm relative overflow-hidden">
+              <p class="text-[10px] font-bold uppercase opacity-90">TOTAL TARGET VOTERS</p>
+              <h3 class="text-2xl font-black mt-1">197,850</h3>
+              <i class="fa-solid fa-users absolute right-3 bottom-3 text-4xl opacity-20"></i>
+            </div>
+
+            <div class="bg-slate-700 text-white p-4 rounded-xl shadow-sm relative overflow-hidden">
+              <p class="text-[10px] font-bold uppercase opacity-90">POLLING BOOTHS</p>
+              <h3 class="text-2xl font-black mt-1">271</h3>
+              <i class="fa-solid fa-chart-pie absolute right-3 bottom-3 text-4xl opacity-20"></i>
+            </div>
+
+            <div class="bg-amber-600 text-white p-4 rounded-xl shadow-sm relative overflow-hidden">
+              <p class="text-[10px] font-bold uppercase opacity-90">FIELD AGENTS ACTIVE</p>
+              <h3 id="statTotalAgents" class="text-2xl font-black mt-1">3</h3>
+              <i class="fa-solid fa-user-tie absolute right-3 bottom-3 text-4xl opacity-20"></i>
+            </div>
+
+            <div class="bg-brand-teal text-white p-4 rounded-xl shadow-sm relative overflow-hidden">
+              <p class="text-[10px] font-bold uppercase opacity-90">SURVEYS COMPLETED</p>
+              <h3 id="statTotalSurveys" class="text-2xl font-black mt-1">0</h3>
+              <i class="fa-solid fa-clipboard-check absolute right-3 bottom-3 text-4xl opacity-20"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-7 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <div class="flex justify-between items-center pb-2 border-b border-gray-100 mb-3">
+                <div>
+                  <h3 class="font-bold text-gray-800 text-sm">Voter Support Classification</h3>
+                  <p class="text-[11px] text-gray-500">Red / Green / Yellow / Blue Voter Breakdown</p>
+                </div>
+                <button onclick="renderCharts()" class="text-xs text-brand-teal font-bold"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+              </div>
+
+              <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="space-y-2 text-xs font-semibold w-full md:w-auto">
+                  <div class="flex justify-between items-center space-x-4 p-1.5 rounded bg-red-50 text-red-700">
+                    <span><span class="w-3 h-3 rounded-full bg-red-500 inline-block mr-1"></span> Red (Opposed)</span>
+                    <strong id="cntRed">0</strong>
+                  </div>
+                  <div class="flex justify-between items-center space-x-4 p-1.5 rounded bg-emerald-50 text-emerald-700">
+                    <span><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block mr-1"></span> Green (Favorable)</span>
+                    <strong id="cntGreen">0</strong>
+                  </div>
+                  <div class="flex justify-between items-center space-x-4 p-1.5 rounded bg-amber-50 text-amber-700">
+                    <span><span class="w-3 h-3 rounded-full bg-amber-400 inline-block mr-1"></span> Yellow (Soft Support)</span>
+                    <strong id="cntYellow">0</strong>
+                  </div>
+                  <div class="flex justify-between items-center space-x-4 p-1.5 rounded bg-blue-50 text-blue-700">
+                    <span><span class="w-3 h-3 rounded-full bg-blue-500 inline-block mr-1"></span> Blue (Swing Voters)</span>
+                    <strong id="cntBlue">0</strong>
+                  </div>
+                </div>
+
+                <div class="relative w-56 h-56 flex items-center justify-center">
+                  <canvas id="dashPieChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <h3 class="font-bold text-gray-800 text-sm mb-3">Community Demographic Data</h3>
+              <div id="casteList" class="space-y-2 text-xs">
+                <p class="text-gray-400 text-center py-4">No demographic survey logs recorded yet.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. FIELD AGENT SURVEY FORM (WITH GPS LIVE LOCATION) -->
+        <section id="surveyCollectorSection" class="content-section hidden space-y-4">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-2xl mx-auto space-y-4">
+            <h2 class="text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-mobile-screen text-emerald-600"></i> Field Survey Data Collection</h2>
+            
+            <form onsubmit="handleSurveySubmit(event)" class="space-y-4 text-xs font-semibold">
+              <div class="flex gap-2 items-center bg-teal-50 p-3 rounded-lg border border-teal-200">
+                <button type="button" onclick="getLiveLocation()" class="bg-brand-teal text-white px-3 py-2 rounded shadow hover:bg-brand-dark flex items-center gap-1">
+                  <i class="fa-solid fa-location-dot text-yellow-400"></i> Capture GPS Location
+                </button>
+                <input type="text" id="surveyLocation" readonly required placeholder="Click to capture coordinates" class="flex-1 p-2 bg-white border rounded">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block mb-1">Voter Name</label>
+                  <input type="text" id="voterName" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                  <label class="block mb-1">Mobile No</label>
+                  <input type="text" id="voterPhone" required class="w-full p-2 border rounded">
+                </div>
+              </div>
+
+              <div>
+                <label class="block mb-1">Voter Sentiment Support</label>
+                <select id="voterSentiment" class="w-full p-2 border rounded font-bold">
+                  <option value="Green">Green (Favorable)</option>
+                  <option value="Red">Red (Opposed)</option>
+                  <option value="Yellow">Yellow (Soft Support)</option>
+                  <option value="Blue">Blue (Swing Voter)</option>
+                </select>
+              </div>
+
+              <div id="dynamicQuestionsContainer" class="space-y-3 pt-2 border-t">
+                <!-- Dynamic questions populated from builder -->
+              </div>
+
+              <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold text-sm shadow hover:bg-emerald-500">
+                Submit Ground Intelligence Record
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 3. PARTNERS & AGENTS SETUP (CREATE AGENT ID & ACCESS) -->
+        <section id="userMgmtSection" class="content-section hidden space-y-4">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-3"><i class="fa-solid fa-user-plus text-amber-500"></i> Register New Field Agent / Partner</h2>
+            
+            <form onsubmit="handleCreateAgent(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs font-semibold mb-6 bg-slate-50 p-4 rounded-xl border">
+              <div>
+                <label class="block mb-1">Agent ID / Username</label>
+                <input type="text" id="newAgentId" required placeholder="e.g. agent2" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block mb-1">Access Password</label>
+                <input type="text" id="newAgentPass" required placeholder="e.g. pass123" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block mb-1">Agent Name</label>
+                <input type="text" id="newAgentName" required placeholder="Full Name" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block mb-1">Access Level</label>
+                <div class="flex gap-2">
+                  <select id="newAgentRole" class="flex-1 p-2 border rounded font-bold">
+                    <option value="agent">Field Agent</option>
+                    <option value="partner">Regional Partner</option>
+                  </select>
+                  <button type="submit" class="bg-brand-teal text-white px-4 rounded font-bold hover:bg-brand-dark">Create</button>
+                </div>
+              </div>
+            </form>
+
+            <h3 class="font-bold text-sm text-gray-800 mb-2">Active Field Personnel Directory</h3>
+            <table class="w-full text-xs text-left border">
+              <thead class="bg-slate-100 uppercase text-gray-600">
+                <tr><th class="p-2 border">Username ID</th><th class="p-2 border">Name</th><th class="p-2 border">Role Access</th><th class="p-2 border">Status</th></tr>
+              </thead>
+              <tbody id="agentTableBody">
+                <!-- Agents List -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 4. GROUND QUESTION BUILDER -->
+        <section id="surveyBuilderSection" class="content-section hidden space-y-4">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-3"><i class="fa-solid fa-list-check text-blue-500"></i> Field Survey Question Configurator</h2>
+            
+            <form onsubmit="handleAddQuestion(event)" class="flex gap-2 mb-4">
+              <input type="text" id="newQuestionText" required placeholder="Enter new survey question for agents..." class="flex-1 p-2.5 border rounded text-xs">
+              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-blue-500">+ Add Question</button>
+            </form>
+
+            <ul id="questionsList" class="space-y-2 text-xs font-semibold">
+              <!-- Questions List -->
+            </ul>
+          </div>
+        </section>
+
+        <!-- 5. ALL INDIA PARTY PROJECTS -->
+        <section id="projectsSection" class="content-section hidden space-y-4">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-3"><i class="fa-solid fa-briefcase text-purple-500"></i> Party Campaign Management</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <h3 class="font-extrabold text-sm text-yellow-800 mb-1">BJP Campaign Engine</h3>
+                <p class="text-gray-600">Active Territory: West Bengal & Pan-India</p>
+              </div>
+              <div class="p-4 bg-teal-50 border border-teal-200 rounded-xl">
+                <h3 class="font-extrabold text-sm text-teal-800 mb-1">INC Project Engine</h3>
+                <p class="text-gray-600">Active Territory: Rajasthan & South Zone</p>
+              </div>
+              <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <h3 class="font-extrabold text-sm text-blue-800 mb-1">AITC Campaign Engine</h3>
+                <p class="text-gray-600">Active Territory: Eastern India</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. SUBMITTED SURVEY LOG -->
+        <section id="surveyDataSection" class="content-section hidden space-y-4">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-3"><i class="fa-solid fa-database text-indigo-500"></i> Field Intelligence Submissions</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border">
+                <thead class="bg-slate-100 uppercase text-gray-600">
+                  <tr>
+                    <th class="p-2 border">Voter</th>
+                    <th class="p-2 border">Phone</th>
+                    <th class="p-2 border">Sentiment</th>
+                    <th class="p-2 border">GPS Coordinates</th>
+                    <th class="p-2 border">Collected By</th>
+                  </tr>
+                </thead>
+                <tbody id="surveyLogTable">
+                  <tr><td colspan="5" class="p-4 text-center text-gray-400">No survey logs recorded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // USERS DATABASE
+    const USERS = {
+      'skbabul': { pass: 'Babul123', name: 'Sk Babul', role: 'admin', title: 'Managing Director' },
+      'partner1': { pass: 'partner123', name: 'Regional Partner', role: 'partner', title: 'State Partner' },
+      'agent1': { pass: 'agent123', name: 'Field Agent 1', role: 'agent', title: 'Surveyor' }
+    };
+
+    let questions = ["Main Priority Issue in Ward?", "Satisfaction with Local Incumbent?"];
+    let surveyLogs = [];
+    let currentUser = null;
+
+    const STATES_UTS = [
+      "West Bengal", "Andhra Pradesh", "Assam", "Bihar", "Delhi", "Gujarat", 
+      "Haryana", "Jharkhand", "Karnataka", "Maharashtra", "Punjab", "Rajasthan", 
+      "Tamil Nadu", "Telangana", "Uttar Pradesh"
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      populateStates();
+      initChart();
+      renderAgentsList();
+      renderQuestionsList();
+    });
+
+    function populateStates() {
+      const select = document.getElementById('stateFilter');
+      if(!select) return;
+      select.innerHTML = '';
+      STATES_UTS.forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st;
+        opt.textContent = st;
+        select.appendChild(opt);
+      });
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+      
+      if(USERS[u] && USERS[u].pass === p) {
+        currentUser = { username: u, ...USERS[u] };
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+        document.getElementById('appContainer').classList.add('flex');
+        updateUserUI();
+        showToast('Successfully Logged In', 'success');
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('appContainer').classList.add('hidden');
+    }
+
+    function updateUserUI() {
+      if(!currentUser) return;
+      document.getElementById('navUserName').textContent = currentUser.name;
+      document.getElementById('navUserRole').textContent = currentUser.role.toUpperCase();
+      document.getElementById('sideUserName').textContent = currentUser.name;
+      document.getElementById('sideRoleBadge').textContent = currentUser.role === 'admin' ? 'Master Admin' : currentUser.role.toUpperCase();
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.content-section').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById(sectionId);
+      if(target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.sidebar-btn').forEach(btn => {
+        btn.classList.remove('text-brand-teal', 'bg-teal-50', 'border-l-4', 'border-brand-teal');
+        btn.classList.add('text-gray-700');
+      });
+      const activeBtn = document.getElementById('nav-' + sectionId);
+      if(activeBtn) activeBtn.classList.add('text-brand-teal', 'bg-teal-50', 'border-l-4', 'border-brand-teal');
+    }
+
+    // GPS LOCATION CAPTURE
+    function getLiveLocation() {
+      if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          document.getElementById('surveyLocation').value = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+          showToast('GPS Location Captured Successfully', 'success');
+        }, () => showToast('GPS Access Denied', 'error'));
+      }
+    }
+
+    // AGENT CREATION
+    function handleCreateAgent(e) {
+      e.preventDefault();
+      const id = document.getElementById('newAgentId').value.trim();
+      const pass = document.getElementById('newAgentPass').value.trim();
+      const name = document.getElementById('newAgentName').value.trim();
+      const role = document.getElementById('newAgentRole').value;
+
+      USERS[id] = { pass, name, role, title: role === 'agent' ? 'Surveyor' : 'Partner' };
+      renderAgentsList();
+      showToast('New Agent ID Created Successfully!', 'success');
+      e.target.reset();
+    }
+
+    function renderAgentsList() {
+      const tbody = document.getElementById('agentTableBody');
+      tbody.innerHTML = '';
+      Object.keys(USERS).forEach(id => {
+        tbody.innerHTML += `<tr class="border-b"><td class="p-2 font-bold">${id}</td><td class="p-2">${USERS[id].name}</td><td class="p-2 uppercase font-semibold text-brand-teal">${USERS[id].role}</td><td class="p-2 text-emerald-600 font-bold">Active</td></tr>`;
+      });
+      document.getElementById('statTotalAgents').textContent = Object.keys(USERS).length;
+    }
+
+    // QUESTION BUILDER LOGIC
+    function handleAddQuestion(e) {
+      e.preventDefault();
+      const text = document.getElementById('newQuestionText').value.trim();
+      questions.push(text);
+      renderQuestionsList();
+      showToast('Question Added to Field Survey Form', 'success');
+      e.target.reset();
+    }
+
+    function renderQuestionsList() {
+      const ul = document.getElementById('questionsList');
+      const container = document.getElementById('dynamicQuestionsContainer');
+      ul.innerHTML = '';
+      container.innerHTML = '';
+
+      questions.forEach((q, idx) => {
+        ul.innerHTML += `<li class="flex justify-between items-center bg-slate-50 p-2 border rounded"><span>${idx+1}. ${q}</span><button onclick="removeQuestion(${idx})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></li>`;
+        container.innerHTML += `<div><label class="block mb-1">${q}</label><input type="text" required class="w-full p-2 border rounded"></div>`;
+      });
+    }
+
+    function removeQuestion(idx) {
+      questions.splice(idx, 1);
+      renderQuestionsList();
+    }
+
+    // SURVEY SUBMISSION LOGIC
+    function handleSurveySubmit(e) {
+      e.preventDefault();
+      const voter = document.getElementById('voterName').value;
+      const phone = document.getElementById('voterPhone').value;
+      const sentiment = document.getElementById('voterSentiment').value;
+      const gps = document.getElementById('surveyLocation').value;
+
+      surveyLogs.push({ voter, phone, sentiment, gps, agent: currentUser ? currentUser.name : 'Agent' });
+      
+      updateSurveyTable();
+      showToast('Survey Record Saved to Live Database', 'success');
+      e.target.reset();
+      showSection('dashboardSection');
+    }
+
+    function updateSurveyTable() {
+      const tbody = document.getElementById('surveyLogTable');
+      tbody.innerHTML = '';
+      let green=0, red=0, yellow=0, blue=0;
+
+      surveyLogs.forEach(s => {
+        if(s.sentiment === 'Green') green++;
+        if(s.sentiment === 'Red') red++;
+        if(s.sentiment === 'Yellow') yellow++;
+        if(s.sentiment === 'Blue') blue++;
+
+        tbody.innerHTML += `<tr class="border-b"><td class="p-2 font-bold">${s.voter}</td><td class="p-2">${s.phone}</td><td class="p-2 font-bold">${s.sentiment}</td><td class="p-2 text-teal-600">${s.gps}</td><td class="p-2">${s.agent}</td></tr>`;
+      });
+
+      document.getElementById('cntGreen').textContent = green;
+      document.getElementById('cntRed').textContent = red;
+      document.getElementById('cntYellow').textContent = yellow;
+      document.getElementById('cntBlue').textContent = blue;
+      document.getElementById('statTotalSurveys').textContent = surveyLogs.length;
+
+      if(dashPieChartInstance) {
+        dashPieChartInstance.data.datasets[0].data = [red, green, yellow, blue, 197850 - surveyLogs.length];
+        dashPieChartInstance.update();
+      }
+    }
+
+    function showToast(msg, type='success') {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+    }
+
+    let dashPieChartInstance = null;
+    function initChart() {
+      const ctx = document.getElementById('dashPieChart');
+      if(!ctx) return;
+      dashPieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Red', 'Green', 'Yellow', 'Blue', 'Grey'],
+          datasets: [{ data: [0, 0, 0, 0, 197850], backgroundColor: ['#ef4444', '#10b981', '#fbbf24', '#3b82f6', '#cbd5e1'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      if(sb) sb.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>
